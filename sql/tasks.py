@@ -181,14 +181,14 @@ def begin_detect_outlier(gath_time):
     print("Detect Anomy SQL Begin At  %s" % gath_time_)
     logger = top_log()
     try:
-        task_list=[DETECT_BUFFER_MODEL.s(gath_time_),DETECT_CPU_MODEL.s(gath_time_),DETECT_DISK_MODEL.s(gath_time_),DETECT_ELAP_MODEL.s(gath_time_),DETECT_EXEC_MODEL.s(gath_time_)]
+        task_list=[DETECT_BUFFER_MODEL.si(gath_time_),DETECT_CPU_MODEL.si(gath_time_),DETECT_DISK_MODEL.si(gath_time_),DETECT_ELAP_MODEL.si(gath_time_),DETECT_EXEC_MODEL.si(gath_time_)]
         total_group = group(task_list)
-        # add_chord_sig = chord(total_group, add.si(2,3))
-        # total_result=add_chord_sig.delay()
-
+        #add_chord_sig =group([chord(group(task_list)(),add.si(5,5))]).apply_async()
+        #total_result=add_chord_sig.apply_async()
+        add_chord_sig = chord(total_group, add.si(5, 5))
         # total_result = total_group.delay()
-        total_result = (total_group | add.si(2,3))().get()
-        return total_result
+        #total_result = (total_group | add.si(2,3))().get()
+        return add_chord_sig.delay()
 
     except Exception as msg:
         logger.info(msg)

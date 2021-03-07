@@ -142,15 +142,22 @@ def home(request):
     cpu_line = Line(title_pos='center')
 
 
-    # cpu_line.add(
-    #     "正常值",
-    #     normal_tiem,
-    #     normal,
-    #     is_smooth=True,
-    #     mark_point=["max", "min"],
-    #     mark_line=["average"],
-    # legend_top = "50%"
-    # )
+    # SQL 执行计划
+    plan_item=[]
+    sql_plan_sql = """
+              select OPERATION,OPTIONS,OBJECT_NAME,COST,CARDINALITY,CPU_COST,IO_COST from plan_result
+               """
+
+    cursor.execute(sql_plan_sql)
+    sql_plan_result_ = cursor.fetchall()
+    for plan_idx in range(len(sql_plan_result_)):
+        plan_item.append({"operation":str(sql_plan_result_[plan_idx][0]).replace("'",'').replace('(','').replace(')', ''),
+                          "option":str(sql_plan_result_[plan_idx][1]).replace("'",'').replace('(','').replace(')', ''),
+                          "object_name":str(sql_plan_result_[plan_idx][2]).replace("'",'').replace('(','').replace(')', ''),
+                          "cost":str(sql_plan_result_[plan_idx][3]).replace("'",'').replace('(','').replace(')', ''),
+                          "CARDINALITY":str(sql_plan_result_[plan_idx][4]).replace("'",'').replace('(','').replace(')', ''),
+                          "cpu_cost":str(sql_plan_result_[plan_idx][5]).replace("'",'').replace('(','').replace(')', ''),
+                          "io_cost":str(sql_plan_result_[plan_idx][3]).replace("'",'').replace('(','').replace(')', '')})
 
     cpu_line.add(
         "DB_CPU",
@@ -165,6 +172,7 @@ def home(request):
         # title = [],
         cpu_line=cpu_line.render_embed(),
         data_result=reasons,
+        sql_plan_result=plan_item,
         sql_result=outlier_sql,
         # metric_data = load_profile_per_hour,
         myechart=timeline.render_embed(),
