@@ -183,9 +183,11 @@ def begin_detect_outlier(gath_time):
     try:
         task_list=[DETECT_BUFFER_MODEL.s(gath_time_),DETECT_CPU_MODEL.s(gath_time_),DETECT_DISK_MODEL.s(gath_time_),DETECT_ELAP_MODEL.s(gath_time_),DETECT_EXEC_MODEL.s(gath_time_)]
         total_group = group(task_list)
-        add_chord_sig = chord(total_group, add.si(2,3))
-        total_result=add_chord_sig.delay()
+        # add_chord_sig = chord(total_group, add.si(2,3))
+        # total_result=add_chord_sig.delay()
+
         # total_result = total_group.delay()
+        total_result = (total_group | add.si(2,3))().get()
         return total_result
 
     except Exception as msg:
