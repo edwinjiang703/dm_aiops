@@ -55,6 +55,7 @@ CELERYD_MAX_TASKS_PER_CHILD = 50
 # Number of concurrent workers.
 CELERYD_CONCURRENCY = 8
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -167,4 +168,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "/static/"),
 ]
-STATIC_ROOT = 'static'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')

@@ -13,7 +13,7 @@ from sql import  database_method
 from oraiops.celeryapp import app
 #app = Celery('proj',broker='redis://127.0.0.1',backend='redis://127.0.0.1')
 
-@app.task(queue='for_task_add')
+@app.task(queue='for_task_sql')
 def add(x,y):
     return x+y
 
@@ -80,7 +80,7 @@ def top_log():
 def get_top_sql(i,gath_time):
     logger = top_log()
     gath_time_ = datetime.datetime.strptime(gath_time.encode('utf-8').decode("utf-8"), "%Y-%m-%d %H:%M")
-    print("begin gath time:%s" %gath_time_)
+    print("begin collect time:%s ,The %s" %(gath_time_,i))
     try:
         conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
         conn = conn.create_conn()
@@ -178,7 +178,7 @@ def get_top_sql(i,gath_time):
 def begin_detect_outlier(gath_time):
     gath_time_ = gath_time
 
-    print("detect gath_time_ %s" % gath_time_)
+    print("Detect Anomy SQL Begin At  %s" % gath_time_)
     logger = top_log()
     try:
         task_list=[DETECT_BUFFER_MODEL.s(gath_time_),DETECT_CPU_MODEL.s(gath_time_),DETECT_DISK_MODEL.s(gath_time_),DETECT_ELAP_MODEL.s(gath_time_),DETECT_EXEC_MODEL.s(gath_time_)]
@@ -186,6 +186,7 @@ def begin_detect_outlier(gath_time):
         add_chord_sig = chord(total_group, add.si(2,3))
         total_result=add_chord_sig.delay()
         # total_result = total_group.delay()
+        return total_result
 
     except Exception as msg:
         logger.info(msg)
@@ -198,8 +199,8 @@ def DETECT_BUFFER_MODEL(gath_time):
     sub_buffer_task_list=[]
     try:
         for i in range(1):
-            sub_buffer_task_list.append(ZJ_RUN_DETECT_BUFFER_MODEL.s('DMTEST',390132054,1,gath_time))
-        print ('detect buffer outlier task %s: '%sub_buffer_task_list)
+            sub_buffer_task_list.append(ZJ_RUN_DETECT_BUFFER_MODEL.s('DMTEST',390132054,1,gath_time,i))
+        print ('Detect Buffer Outlier Total Task %s: '%sub_buffer_task_list)
         sub_detect_buffer = group(sub_buffer_task_list)
         sub_buffer_result = sub_detect_buffer.delay()
 
@@ -207,9 +208,9 @@ def DETECT_BUFFER_MODEL(gath_time):
         logger.info(msg)
 
 @app.task(queue='for_task_sql')
-def ZJ_RUN_DETECT_BUFFER_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time):
+def ZJ_RUN_DETECT_BUFFER_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time,i):
     gath_time_= datetime.datetime.strptime(gath_time.encode('utf-8').decode("utf-8"), "%Y-%m-%d %H:%M")
-    print("buffer detect gath_time_ %s" %gath_time_)
+    print("Detect Buffer Outlier Sub Task No is: %s, Time is %s"%(str(i),gath_time_))
     logger = top_log()
     try:
         conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
@@ -230,8 +231,8 @@ def DETECT_CPU_MODEL(gath_time):
     sub_cpu_task_list=[]
     try:
         for i in range(1):
-            sub_cpu_task_list.append(ZJ_RUN_DETECT_CPU_MODEL.s('DMTEST',390132054,1,gath_time))
-        print ('detect cpu outlier task %s: '%sub_cpu_task_list)
+            sub_cpu_task_list.append(ZJ_RUN_DETECT_CPU_MODEL.s('DMTEST',390132054,1,gath_time,i))
+        print('Detect Cpu Outlier Total Task %s: ' %sub_cpu_task_list)
         sub_detect_cpu = group(sub_cpu_task_list)
         sub_cpu_result = sub_detect_cpu.delay()
         # logger.info('detect cpu outlier task status %s:'%sub_cpu_result.status())
@@ -239,9 +240,9 @@ def DETECT_CPU_MODEL(gath_time):
         logger.info(msg)
 
 @app.task(queue='for_task_sql')
-def ZJ_RUN_DETECT_CPU_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time):
+def ZJ_RUN_DETECT_CPU_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time,i):
     gath_time_= datetime.datetime.strptime(gath_time.encode('utf-8').decode("utf-8"), "%Y-%m-%d %H:%M")
-    print("cpu detect gath_time_ %s" %gath_time_)
+    print("Detect Cpu Outlier Sub Task No is: %s, Time is %s" %(str(i),gath_time_))
     logger = top_log()
     try:
         conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
@@ -263,8 +264,8 @@ def DETECT_DISK_MODEL(gath_time):
     sub_disk_task_list=[]
     try:
         for i in range(1):
-            sub_disk_task_list.append(ZJ_RUN_DETECT_DISK_MODEL.s('DMTEST',390132054,1,gath_time))
-        print ('detect disk outlier task %s: '%sub_disk_task_list)
+            sub_disk_task_list.append(ZJ_RUN_DETECT_DISK_MODEL.s('DMTEST',390132054,1,gath_time,i))
+        print('Detect Disk Outlier Total Task %s: ' % sub_disk_task_list)
         sub_detect_disk = group(sub_disk_task_list)
         sub_disk_result = sub_detect_disk.delay()
         # logger.info('detect cpu outlier task status %s:'%sub_cpu_result.status())
@@ -272,9 +273,9 @@ def DETECT_DISK_MODEL(gath_time):
         logger.info(msg)
 
 @app.task(queue='for_task_sql')
-def ZJ_RUN_DETECT_DISK_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time):
+def ZJ_RUN_DETECT_DISK_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time,i):
     gath_time_= datetime.datetime.strptime(gath_time.encode('utf-8').decode("utf-8"), "%Y-%m-%d %H:%M")
-    print("disk detect gath_time_ %s" %gath_time_)
+    print("Detect Disk Outlier Sub Task No is: %s, Time is %s " %(str(i),gath_time_))
     logger = top_log()
     try:
         conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
@@ -295,8 +296,8 @@ def DETECT_ELAP_MODEL(gath_time):
     sub_elap_task_list=[]
     try:
         for i in range(1):
-            sub_elap_task_list.append(ZJ_RUN_DETECT_ELAP_MODEL.s('DMTEST',390132054,1,gath_time))
-        print ('detect elap outlier task %s: '%sub_elap_task_list)
+            sub_elap_task_list.append(ZJ_RUN_DETECT_ELAP_MODEL.s('DMTEST',390132054,1,gath_time,i))
+        print('Detect Elap Outlier Total Task %s: ' % sub_elap_task_list)
         sub_detect_elap = group(sub_elap_task_list)
         sub_elap_result = sub_detect_elap.delay()
         # logger.info('detect cpu outlier task status %s:'%sub_cpu_result.status())
@@ -304,9 +305,9 @@ def DETECT_ELAP_MODEL(gath_time):
         logger.info(msg)
 
 @app.task(queue='for_task_sql')
-def ZJ_RUN_DETECT_ELAP_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time):
+def ZJ_RUN_DETECT_ELAP_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time,i):
     gath_time_= datetime.datetime.strptime(gath_time.encode('utf-8').decode("utf-8"), "%Y-%m-%d %H:%M")
-    print("elap detect gath_time_ %s" %gath_time_)
+    print("Detect Elap Outlier Sub Task No is: %s, Time is %s " % (str(i), gath_time_))
     logger = top_log()
     try:
         conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
@@ -327,8 +328,8 @@ def DETECT_EXEC_MODEL(gath_time):
     sub_exec_task_list=[]
     try:
         for i in range(1):
-            sub_exec_task_list.append(ZJ_RUN_DETECT_EXEC_MODEL.s('DMTEST',390132054,1,gath_time))
-        print ('detect exec outlier task %s: '%sub_exec_task_list)
+            sub_exec_task_list.append(ZJ_RUN_DETECT_EXEC_MODEL.s('DMTEST',390132054,1,gath_time,i))
+        print('Detect Exec Outlier Total Task %s: ' % sub_exec_task_list)
         sub_detect_exec = group(sub_exec_task_list)
         sub_exec_result = sub_detect_exec.delay()
         # logger.info('detect cpu outlier task status %s:'%sub_cpu_result.status())
@@ -336,9 +337,9 @@ def DETECT_EXEC_MODEL(gath_time):
         logger.info(msg)
 
 @app.task(queue='for_task_sql')
-def ZJ_RUN_DETECT_EXEC_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time):
+def ZJ_RUN_DETECT_EXEC_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time,i):
     gath_time_= datetime.datetime.strptime(gath_time.encode('utf-8').decode("utf-8"), "%Y-%m-%d %H:%M")
-    print("exec detect gath_time_ %s" %gath_time_)
+    print("Detect Exec Outlier Sub Task No is: %s, Time is %s " % (str(i), gath_time_))
     logger = top_log()
     try:
         conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
