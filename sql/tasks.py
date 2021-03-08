@@ -13,9 +13,7 @@ from sql import  database_method
 from oraiops.celeryapp import app
 #app = Celery('proj',broker='redis://127.0.0.1',backend='redis://127.0.0.1')
 
-@app.task(queue='for_task_sql')
-def add(x,y):
-    return x+y
+
 
 #@periodic_task(run_every=300, name="begin")
 @app.task(queue='for_task_sql')
@@ -181,11 +179,11 @@ def begin_detect_outlier(gath_time):
     print("Detect Anomy SQL Begin At  %s" % gath_time_)
     logger = top_log()
     try:
-        task_list=[DETECT_BUFFER_MODEL.si(gath_time_),DETECT_CPU_MODEL.si(gath_time_),DETECT_DISK_MODEL.si(gath_time_),DETECT_ELAP_MODEL.si(gath_time_),DETECT_EXEC_MODEL.si(gath_time_)]
+        task_list=[DETECT_BUFFER_MODEL.s(gath_time_),DETECT_CPU_MODEL.s(gath_time_),DETECT_DISK_MODEL.s(gath_time_),DETECT_ELAP_MODEL.s(gath_time_),DETECT_EXEC_MODEL.s(gath_time_)]
         total_group = group(task_list)
         #add_chord_sig =group([chord(group(task_list)(),add.si(5,5))]).apply_async()
         #total_result=add_chord_sig.apply_async()
-        add_chord_sig = chord(total_group, add.si(5, 5))
+        add_chord_sig = group(chord(total_group)(add.si(5, 5)))
         # total_result = total_group.delay()
         #total_result = (total_group | add.si(2,3))().get()
         return add_chord_sig.delay()
@@ -353,3 +351,8 @@ def ZJ_RUN_DETECT_EXEC_MODEL(db_name_ ,dbid_ ,inst_id_ ,gath_time,i):
         conn.close()
     except Exception as msg:
         logger.info(msg)
+
+
+@app.task(queue='for_task_sql')
+def add(x,y):
+    return x+y

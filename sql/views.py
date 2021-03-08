@@ -144,6 +144,13 @@ def home(request):
 
     # SQL 执行计划
     plan_item=[]
+    operation=[]
+    option=[]
+    object_name=[]
+    cost=[]
+    card=[]
+    cpucost=[]
+    iocost=[]
     sql_plan_sql = """
               select OPERATION,OPTIONS,OBJECT_NAME,COST,CARDINALITY,CPU_COST,IO_COST from plan_result
                """
@@ -151,13 +158,21 @@ def home(request):
     cursor.execute(sql_plan_sql)
     sql_plan_result_ = cursor.fetchall()
     for plan_idx in range(len(sql_plan_result_)):
-        plan_item.append({"operation":str(sql_plan_result_[plan_idx][0]).replace("'",'').replace('(','').replace(')', ''),
-                          "option":str(sql_plan_result_[plan_idx][1]).replace("'",'').replace('(','').replace(')', ''),
-                          "object_name":str(sql_plan_result_[plan_idx][2]).replace("'",'').replace('(','').replace(')', ''),
-                          "cost":str(sql_plan_result_[plan_idx][3]).replace("'",'').replace('(','').replace(')', ''),
-                          "CARDINALITY":str(sql_plan_result_[plan_idx][4]).replace("'",'').replace('(','').replace(')', ''),
-                          "cpu_cost":str(sql_plan_result_[plan_idx][5]).replace("'",'').replace('(','').replace(')', ''),
-                          "io_cost":str(sql_plan_result_[plan_idx][3]).replace("'",'').replace('(','').replace(')', '')})
+        # plan_item.append({"operation":str(sql_plan_result_[plan_idx][0]).replace("'",'').replace('(','').replace(')', ''),
+        #                   "option":str(sql_plan_result_[plan_idx][1]).replace("'",'').replace('(','').replace(')', ''),
+        #                   "object_name":str(sql_plan_result_[plan_idx][2]).replace("'",'').replace('(','').replace(')', ''),
+        #                   "cost":str(sql_plan_result_[plan_idx][3]).replace("'",'').replace('(','').replace(')', ''),
+        #                   "CARDINALITY":str(sql_plan_result_[plan_idx][4]).replace("'",'').replace('(','').replace(')', ''),
+        #                   "cpu_cost":str(sql_plan_result_[plan_idx][5]).replace("'",'').replace('(','').replace(')', ''),
+        #                   "io_cost":str(sql_plan_result_[plan_idx][3]).replace("'",'').replace('(','').replace(')', '')})
+        operation.append(str(sql_plan_result_[plan_idx][0]).replace("'",'').replace('(','').replace(')', ''))
+        option.append(str(sql_plan_result_[plan_idx][1]).replace("'",'').replace('(','').replace(')', ''))
+        object_name.append(str(sql_plan_result_[plan_idx][2]).replace("'", '').replace('(', '').replace(')', ''))
+        cost.append(str(sql_plan_result_[plan_idx][3]).replace("'", '').replace('(', '').replace(')', ''))
+        card.append(str(sql_plan_result_[plan_idx][4]).replace("'", '').replace('(', '').replace(')', ''))
+        cpucost.append(str(sql_plan_result_[plan_idx][5]).replace("'", '').replace('(', '').replace(')', ''))
+        iocost.append(str(sql_plan_result_[plan_idx][6]).replace("'", '').replace('(', '').replace(')', ''))
+    plan_item.append({"operation":operation,"option":option,"objectname":object_name,"cost":cost,"card":card,"cpucost":cpucost,"iocost":iocost})
 
     cpu_line.add(
         "DB_CPU",
