@@ -10,7 +10,8 @@ import logging
 from pyecharts import Line,Bar,Timeline,Pie
 from sql import database_method
 from sql.tasks import add
-
+import base64
+import cx_Oracle
 
 # Create your views here.
 
@@ -199,6 +200,35 @@ def home(request):
 
     # return render(request, "./node_modules/gentelella/production/sel_cpuoutlier_data.html", {'data_result': data_result})
     cursor.close()
+
+def add_database(request):
+    if request.method == 'POST':
+        service_name = request.POST.get('service_name')
+        ip_address = request.POST.get('ip_address')
+        port = request.POST.get('port')
+        username = request.POST.get('username')
+        password = base64.b64encode(str(request.POST.get('password')).encode("utf-8"))
+        try:
+            conn = database_method.initial_connect('dmuser', 'dmuser', 'dmtest')
+            conn = conn.create_conn()
+            cursor = conn.cursor()
+
+            info_sql = """
+                       insert into db_details (service,ip,port,username,password) values(:service_name,:ip_address,:port,:username,:password)
+            """
+            cursor.execute(info_sql, (service_name, ip_address, port, username, password))
+            cursor.connection.commit()
+            cursor.close()
+        except cx_Oracle.DatabaseError as exc:
+            print('add database info ', exc)
+        finally:
+            conn.close()
+        print(service_name, ip_address, port, username, password)
+    return render(request, "./node_modules/gentelella/production/add_database.html")
+
+def mod_database(request):
+    return render(request, "./node_modules/gentelella/production/modify_database.html")
+
 
 def login(request):
     # f = open('templates/login.html','r',encoding='utf-8')

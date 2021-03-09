@@ -12,5 +12,6 @@ from sql import views
 urlpatterns = [
     #FBV Function base view
     url(r'^anodetect/', views.home),
-    url(r'^add/', views.post),
+    url(r'^add_database/', views.add_database,name='addinfo'),
+    url(r'^mod_database/', views.mod_database,name='modinfo'),
 ]
